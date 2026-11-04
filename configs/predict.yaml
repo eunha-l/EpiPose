@@ -1,0 +1,18 @@
+# Evaluation and prediction. The model settings must match the checkpoint.
+data_dir: data/features
+top_poses: 500
+multi_apo: false
+score_only_test: true
+
+dim: 48
+heads: 4
+blocks: 2
+dropout: 0.1
+res_dropout: 0.2
+
+use_delta_rank: false
+map_tau: 1.0
+
+gpu: 0
+tag: epipose
+ckpt: checkpoints/epipose_seed0.pt

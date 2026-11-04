@@ -1,0 +1,18 @@
+name: epipose
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13
+  - pip
+  - numpy=1.26
+  - scipy=1.17
+  - scikit-learn=1.8
+  - pandas=3.0
+  - pyyaml=6.0
+  - gemmi=0.7                 # cif parsing, needed by the docking pipeline only
+  - pip:
+      # Install torch for your CUDA version. The combination below matches the
+      # development environment; see https://pytorch.org for other drivers.
+      #   pip install torch --index-url https://download.pytorch.org/whl/cu130
+      - torch==2.11.0

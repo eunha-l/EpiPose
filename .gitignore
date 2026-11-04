@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+runs/
+work/
+*.npz.tmp
+# Large data is distributed as release archives, see the README.
+data/features/*.pkl
+data/structures/
