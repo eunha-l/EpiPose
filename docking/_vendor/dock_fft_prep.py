@@ -10,20 +10,14 @@ from paths import (ROOT as _ROOT, ASSETS as _ASSETS, WORK as _WORK,
                    ZEPII as _ZEPII, RAW as _RAW, APO as _APO)
 
 #!/usr/bin/env python
-"""Pull the coordinates the FFT docking needs out of the complexes.
-
-The docking itself runs under a different interpreter, the one that has a GPU
-build of torch, and that interpreter has no structure parser. So the atoms are
-extracted here and written as plain arrays.
+"""Extract the atom arrays the FFT docking reads from a complex cif.
 
 Antigen and antibody are separated, the antibody's atoms are marked according to
 whether they belong to a CDR loop, and each antigen atom is tagged with the
-residue it came from so that poses can be turned back into residue labels. The
-antigen is taken from the complex, in the conformation it holds there, which is
-the easiest case docking will ever face; if the score cannot find the right site
-under those conditions it will not find it under harder ones.
+residue it came from, so a pose can be turned back into residue labels. The
+unbound antigen is prepared by dock_fft_prep_apo.py.
 
-Output: results/dock_fft/<instance>__<chain>.npz
+Output: <EPIPOSE_DOCK_OUT>/<instance>__<chain>.npz
 """
 import os
 import sys
@@ -44,10 +38,8 @@ AA3 = {"ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LE
        "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"}
 VDW = {"C": 1.70, "N": 1.55, "O": 1.52, "S": 1.80, "P": 1.80}
 
-# counting contacts treats every atom alike, which lets a wide flat patch of
-# anything outscore a small real epitope. Three classes are enough to tell
-# burying oil from pairing charges: carbon and sulfur, neutral nitrogen and
-# oxygen, and the atoms that carry a formal charge.
+# Three atom classes: carbon and sulfur, neutral nitrogen and oxygen, and the
+# atoms carrying a formal charge.
 CHARGED = {("ASP", "OD1"), ("ASP", "OD2"), ("GLU", "OE1"), ("GLU", "OE2"),
            ("LYS", "NZ"), ("ARG", "NE"), ("ARG", "NH1"), ("ARG", "NH2"),
            ("HIS", "ND1"), ("HIS", "NE2")}

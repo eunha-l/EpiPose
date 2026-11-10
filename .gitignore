@@ -6,3 +6,6 @@ work/
 # Large data is distributed as release archives, see the README.
 data/features/*.pkl
 data/structures/
+
+# Korean README, kept locally only.
+README.ko.md

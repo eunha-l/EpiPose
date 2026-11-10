@@ -1,6 +1,6 @@
 """Training losses.
 
-  pose_bce    main loss, fits the pose quality q = |C and y| / |C|
+  pose_bce    pose loss, fits the contact precision q = |C and y| / |C|
   delta_rank  auxiliary loss, ranks poses by the structural change of the
               residues they cover
 
@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 
 def pose_bce(logit: torch.Tensor, q: torch.Tensor) -> torch.Tensor:
-    """Binary cross entropy on the pose quality. logit (P,), q (P,) in [0, 1]."""
+    """Binary cross entropy on the contact precision. logit (P,), q (P,) in [0, 1]."""
     return F.binary_cross_entropy_with_logits(logit, q)
 
 

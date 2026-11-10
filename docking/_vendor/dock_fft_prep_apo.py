@@ -10,21 +10,16 @@ from paths import (ROOT as _ROOT, ASSETS as _ASSETS, WORK as _WORK,
                    ZEPII as _ZEPII, RAW as _RAW, APO as _APO)
 
 #!/usr/bin/env python
-"""The same docking with an antigen solved on its own, not in the complex.
+"""Prepare the unbound antigen, solved on its own rather than in the complex.
 
-An AlphaFold3 prediction stood in for the unbound antigen earlier. A real apo
-crystal structure is the setting docking is normally judged in, and 226 of the
-506 chains have one: the same antigen, deposited without any antibody. Those are
-prepared here.
+The unbound chain is matched to the canonical antigen by sequence and superposed
+onto the bound antigen by least squares on the matched CA atoms, which keeps the
+antibody position in the complex meaningful as the native pose and keeps the
+residue labels on the right residues. Only the residues present in both are
+carried over, and the superposition error is recorded, since that is the change
+the docking has to absorb.
 
-The apo chain is matched to ours by sequence and superposed onto the bound
-antigen by least squares on the matched CA atoms, which keeps the antibody's
-position in the complex meaningful as the native pose and keeps the residue
-labels on the right residues. Only the residues present in both are carried over,
-and how far the superposition misses is recorded, since that is the change the
-docking now has to absorb.
-
-Output: results/dock_fft/<unit>.apo.npz
+Output: <EPIPOSE_DOCK_OUT>/<unit>.apo.npz
 """
 import os
 import warnings
@@ -58,10 +53,9 @@ def chain_residues(path, want=None):
     d = MMCIF2Dict(str(path))
     n = len(d["_atom_site.id"])
     mdl = d.get("_atom_site.pdbx_PDB_model_num", ["1"] * n)
-    # An atom modelled in alternate conformations appears once per altloc. Without this
-    # filter every one of them enters the grid, so a side chain is rasterised two or three
-    # times and counted that many times in the contact and overlap terms. 11 of the 83
-    # second-crystal antigens were affected, 0.1 to 1.8% of their atoms.
+    # An atom modelled in alternate conformations appears once per altloc. Without
+    # this filter a side chain is rasterised several times and counted that many
+    # times in the contact and overlap terms.
     alt = d.get("_atom_site.label_alt_id", ["."] * n)
     out, seen = {}, set()
     for grp, el, nm, comp, ch, seq, ic, x, y, z, mm, al in zip(
@@ -144,10 +138,9 @@ def one(job):
         for nm, el, x, y, z in v["atoms"]:
             xyz = R @ np.array([x, y, z]) + t
             ag.append(xyz); agr.append(tgt)
-            # the atom's identity, in the same six columns the other preps use. Without it
-            # `feat_build` falls back to the full structure's atom list, which is longer than
-            # the mapped set, and indexes past the end - the two test antigens that were
-            # missing from the 96 were lost exactly there.
+            # the atom's identity, in the same six columns the other preps use.
+            # Without it `feat_build` falls back to the full structure's atom list,
+            # which is longer than the mapped set, and indexes past the end.
             agmeta.append((nm, v["comp"], "A", int(keys[tgt][0]),
                            str(keys[tgt][1]), el))
             agc.append(classify(v["comp"], nm, el)); agq.append(charge(v["comp"], nm))

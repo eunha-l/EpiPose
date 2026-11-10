@@ -6,8 +6,8 @@ and is then applied to the test split.
 from __future__ import annotations
 
 import numpy as np
-from sklearn.metrics import (average_precision_score, f1_score,
-                             matthews_corrcoef, roc_auc_score)
+from sklearn.metrics import (average_precision_score, balanced_accuracy_score,
+                             f1_score, matthews_corrcoef, roc_auc_score)
 
 GRID = np.arange(0.002, 0.90, 0.002)
 
@@ -54,8 +54,9 @@ def evaluate(pairs: list[tuple[np.ndarray, np.ndarray]],
     per_unit = [roc_auc_score(yl, pm) for pm, yl in pairs if 0 < yl.sum() < len(yl)]
     return dict(threshold=threshold,
                 auroc=float(roc_auc_score(y, p)),
-                auprc=float(average_precision_score(y, p)),
+                aucpr=float(average_precision_score(y, p)),
                 mcc=float(matthews_corrcoef(y, binary)),
+                bacc=float(balanced_accuracy_score(y, binary)),
                 f1=float(f1_score(y, binary, zero_division=0)),
                 f1_at_k=2 * tp / max(2 * tp + fp + fn, 1),
                 auroc_macro=float(np.mean(per_unit)) if per_unit else float("nan"))

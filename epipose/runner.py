@@ -133,11 +133,11 @@ def _final_report(net, store, cfg):
     test_res["pose_auroc"] = pa
     test_res["pose_auroc_skipped"] = skipped
     print("", flush=True)
-    print(f"{'map':16s}{'AUROC':>9s}{'AUPRC':>9s}{'MCC':>9s}{'F1':>9s}{'F1@30':>9s}",
-          flush=True)
-    print(f"{'EpiPose':16s}{test_res['auroc']:9.4f}{test_res['auprc']:9.4f}"
-          f"{test_res['mcc']:9.4f}{test_res['f1']:9.4f}{test_res['f1_at_k']:9.4f}",
-          flush=True)
+    print(f"{'map':16s}{'AUROC':>9s}{'AUCPR':>9s}{'MCC':>9s}{'BAcc':>9s}"
+          f"{'F1':>9s}{'F1@30':>9s}", flush=True)
+    print(f"{'EpiPose':16s}{test_res['auroc']:9.4f}{test_res['aucpr']:9.4f}"
+          f"{test_res['mcc']:9.4f}{test_res['bacc']:9.4f}"
+          f"{test_res['f1']:9.4f}{test_res['f1_at_k']:9.4f}", flush=True)
     print(f"  pose AUROC {pa:.4f}  ({skipped} units skipped)", flush=True)
     return val_res, test_res
 

@@ -40,7 +40,6 @@ ap.add_argument("--tag", default="dove")
 ap.add_argument("--seed", type=int, default=0)
 ap.add_argument("--cube", type=int, default=24)
 ap.add_argument("--vox", type=int, default=1)
-#   zepside   = ZEPII 1 + SIDE_CH 5 (rsa, cons_kl, cons_id, has_cons, prop_r)  = 6
 ap.add_argument("--chsel", default="",
                 choices=["", "zepside", "nophys", "abzepside", "ab11"])
 ap.add_argument("--ag_ch", default="man", choices=["man", "full", "new5"])
@@ -60,11 +59,9 @@ ap.add_argument("--pool", type=int, default=2)
 ap.add_argument("--head", default="avg",
                 choices=["avg", "fc", "stat", "attn", "statattn"])
 ap.add_argument("--hardneg", type=float, default=0.0)
-#   rank      pairwise soft-AUC. -log sigmoid(logit_i - logit_j) for q_i > q_j.
 ap.add_argument("--loss", default="bce",
                 choices=["bce", "mse", "rank", "bce_rank", "soft"])
 ap.add_argument("--lam_rank", type=float, default=1.0)
-#     w = softmax(z(lg)/T);  p = Σ w_k·C_k;  L += lam_map · BCE(p, y)
 ap.add_argument("--lam_map", type=float, default=0.0)
 ap.add_argument("--apo_expand", type=int, default=0)
 ap.add_argument("--multi_apo", type=int, default=0)

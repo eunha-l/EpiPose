@@ -10,29 +10,20 @@ from paths import (ROOT as _ROOT, ASSETS as _ASSETS, WORK as _WORK,
                    ZEPII as _ZEPII, RAW as _RAW, APO as _APO)
 
 #!/usr/bin/env python
-"""Docking with chemistry in the score, not just contact area.
+"""FFT rigid-body docking of an antibody against an unbound antigen.
 
-The first version counted how many CDR atoms came to rest at touching distance
-and subtracted overlaps. The error analysis showed what that costs: the native
-pose was missed most often when the epitope was small, because a large flat
-patch of anything accumulates more contacts than a small well matched one. Three
-terms are added, each of which still fits a correlation and so costs one more
-transform per rotation.
+For every sampled rotation all translations are scored at once by FFT
+cross-correlation. The score combines four terms:
 
-  pairing     the class potential counted from the training interfaces, which
-              prefers polar partners and salt bridges at close range rather
-              than whatever is most abundant
-  charge      the antigen's electrostatic potential against the antibody's
-              charges, with the dielectric rising with distance
-  overlap     unchanged, every atom is punished for entering the antigen
+  contact     CDR atoms in the antigen contact shell
+  pairing     class-dependent pairwise potential over two distance shells
+  charge      electrostatics with a distance-dependent dielectric
+  overlap     steric clash penalty over all antibody atoms
 
-The four terms are kept separate all the way to the translation grids, so their
-weights can be chosen afterwards without repeating the transforms. In calibration
-mode every candidate weighting is scored in the same pass and judged by where
-the native pose ends up, which is what the error analysis identified as the
-thing that decides whether a chain succeeds.
+The terms are kept separate down to the translation grids, so their weights can
+be applied afterwards without repeating the transforms.
 
-Output: results/dock_fft/<unit>.result2.npz, or .calib.npz
+Output: <EPIPOSE_DOCK_OUT>/<unit>.res_<tag>.npz
 """
 import itertools
 import json
@@ -47,15 +38,11 @@ import torch
 RES = _WORK
 FFT = _DOCK_OUT
 H = 1.0
-# the overlap radius is set here rather than fixed, because the tolerance that suits a
-# bound antigen is not the tolerance that suits a predicted one
+# overlap radius, loosened for unbound antigens
 CLASH = float(os.environ.get("R_CLASH", 2.6))
 SHELLS = [(2.6, 3.6), (3.6, 6.0)]
-# Hard distance bands make the score jump when an atom crosses a boundary, and the
-# measurement says that is the trouble: with a predicted antigen the interface shifts
-# about an angstrom even when the fold is right, and the native pose loses its
-# ranking. Replacing the boundaries with ramps of this width lets the score survive a
-# shift of that size. Zero keeps the hard bands.
+# Width of the ramps that replace the hard distance-band boundaries. Zero, the
+# default used throughout, keeps the hard bands.
 SMOOTH = float(os.environ.get("SMOOTH", 0.0))
 
 
@@ -71,15 +58,13 @@ NROT = 12000
 # whatever the batch. Lower it to share a card with something that has already
 # reserved most of the memory.
 BATCH = int(os.environ.get("BATCH", 16))
-# five hundred was never swept upward, and pooling more poses is the only change
-# that has ever helped twice; the pool is the one thing the consensus is made of
+# poses kept per unit, the pool the reranker scores
 KEEP = int(os.environ.get("KEEP", 500))
 SIZES = [96, 128, 144, 160, 192, 224, 256]
 EPS_SLOPE = 4.0      # dielectric taken as 4r, so the potential falls as 1/r squared
 ELEC_CUT, ELEC_MIN = 12.0, 2.0
-# a hard overlap penalty is too brittle once the antigen is not the bound structure:
-# side chains sit in different rotamers, so the true pose picks up about fifteen more
-# overlapping atoms and loses half its score, while decoys, free to avoid them, do not
+# An unbound antigen carries side chains in different rotamers, so a hard overlap
+# penalty charges the true pose far more than the decoys. The penalty is bounded.
 GRID = json.loads(os.environ["GRID"]) if os.environ.get("GRID") else {
     "pot": [3.0], "elec": [-300.0], "contact": [0.5],
     "clash": [0.0, 0.25, 1.0, 3.0], "cap": [0.0]}
@@ -168,8 +153,7 @@ def prepare(f, dev):
     ag, ab = t("ag"), t("ab")
     acl, bcl = t("ag_cls", torch.long), t("ab_cls", torch.long)
     cdr = t("ab_cdr", torch.long).bool()
-    # the potential fitted to separate real interfaces from plausible wrong ones,
-    # rather than the log odds over interfaces alone, which scored them as neutral
+    # pairwise class potential, fitted on training interfaces
     E = torch.tensor(np.load(RES / os.environ.get("WEIGHTS",
                      "dock_weights_raw.npz"))["E"], device=dev, dtype=torch.float32)
     # the number of atom classes is whatever the potential was fitted with, so a
@@ -422,11 +406,7 @@ def main():
     listing = os.environ.get("LIST", listing)
     units = (FFT / listing).read_text().split()
     units = units[shard::nsh]
-    # chosen by where the native pose lands under the full search, not by the fit
-    # alone, whose own weights were only ever checked against poses an overlap
-    # penalty three times stronger had already allowed
-    # halving the area term is what rescued the small epitopes the error analysis
-    # had singled out, without costing anything on the large ones
+    # fixed docking weights, tuned for unbound input (see the paper)
     w = {"contact": float(os.environ.get("W_CONTACT", 0.5)),
          "pot": float(os.environ.get("W_POT", 3.0)),
          "elec": float(os.environ.get("W_ELEC", -300.0)),
