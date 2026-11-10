@@ -61,7 +61,7 @@ def cmd_dock(a) -> int:
                WEIGHTS="dock_weights_raw.npz")
     if a.frame:
         env["FRAME"] = a.frame
-    return _run("dock_runner.py",
+    return _run("dock_fft.py",
                 [str(a.gpu), str(a.shard), str(a.n_shard), a.mode], env)
 
 

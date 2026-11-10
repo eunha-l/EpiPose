@@ -21,7 +21,7 @@ os.environ.setdefault("WEIGHTS", "dock_weights_raw.npz")
 sys.path.insert(0, _VD)
 sys.path.insert(0, HERE); os.chdir(HERE)
 import numpy as np, pandas as pd, torch, torch.nn as nn, torch.nn.functional as Fn
-import dock_fft_gpu2 as D
+import dock_fft as D
 from sklearn.metrics import roc_auc_score, average_precision_score
 
 DK = str(_DOCK_OUT)

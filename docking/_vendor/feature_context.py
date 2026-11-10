@@ -32,7 +32,7 @@ import torch.nn.functional as Fn  # noqa: E402
 from scipy.stats import spearmanr  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
-import dock_fft_gpu2 as D  # noqa: E402
+import dock_fft as D  # noqa: E402
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--gpu", type=int, default=0)
