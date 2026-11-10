@@ -38,10 +38,10 @@ OUT = sys.argv[2]
 SEL = sys.argv[3] if len(sys.argv) > 3 else ""
 
 os.environ["RES_FEAT"] = str(_RESFEAT)
-sys.argv = ["09_dove.py", "--ag_ch", "man", "--inter", "1", "--gpu", str(GPU),
-            "--multi_apo", "0", "--cache", "0"]
+sys.argv = ["feature_context.py", "--ag_ch", "man", "--inter", "1",
+            "--gpu", str(GPU)]
 GD = {"__name__": "_lib", "__file__": _os.path.join(_VD, "feature_context.py")}
-exec(compile(open(_os.path.join(_VD, "feature_context.py")).read(), "dove", "exec"), GD)
+exec(compile(open(_os.path.join(_VD, "feature_context.py")).read(), "feature_context.py", "exec"), GD)
 
 dev = GD["dev"]
 G_ = GD["G_"]

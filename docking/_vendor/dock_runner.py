@@ -35,7 +35,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-RES = _WORK
 FFT = _DOCK_OUT
 H = 1.0
 # overlap radius, loosened for unbound antigens
@@ -154,7 +153,7 @@ def prepare(f, dev):
     acl, bcl = t("ag_cls", torch.long), t("ab_cls", torch.long)
     cdr = t("ab_cdr", torch.long).bool()
     # pairwise class potential, fitted on training interfaces
-    E = torch.tensor(np.load(RES / os.environ.get("WEIGHTS",
+    E = torch.tensor(np.load(_ASSETS / os.environ.get("WEIGHTS",
                      "dock_weights_raw.npz"))["E"], device=dev, dtype=torch.float32)
     # the number of atom classes is whatever the potential was fitted with, so a
     # finer potential needs no edit here and a tensor with fewer classes still works

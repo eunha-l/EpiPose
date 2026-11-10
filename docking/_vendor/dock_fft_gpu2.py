@@ -35,7 +35,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-RES = _WORK
 FFT = _DOCK_OUT
 H = 1.0
 # overlap radius, loosened for unbound antigens
